@@ -2,6 +2,8 @@ pipeline{
     agent any
     environment {
             CI = 'false'
+            TEST_DATABASE_URL = credentials('test_database_url')
+            TEST_DATABASE_URL1 = credentials('test_database_url1')
         }
 
     tools {nodejs "node"}
