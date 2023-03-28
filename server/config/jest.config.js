@@ -3,6 +3,6 @@ const path = require("path");
 module.exports = {
   testEnvironment: "node",
   rootDir: path.join(__dirname, ".."),
-  testMatch: ["<rootDir>/__tests__/**/*.test.js"],
+  testMatch: ["**/__tests__/**/*.test.[jt]s?(x)"],
   setupFilesAfterEnv: ["./config/jest.setup.js"],
 };
