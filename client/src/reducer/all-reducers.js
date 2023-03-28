@@ -1,10 +1,10 @@
 import { combineReducers } from "redux";
-import OptionReducer from "./reducer-options";
-import ActiveUserReducer from "./reducer-active";
+import { reducerOption } from "./reducer-options";
+import { reducerActive } from "./reducer-active";
 
 const allred = combineReducers({
-  users: OptionReducer,
-  activeUser: ActiveUserReducer,
+  users: reducerOption,
+  activeUser: reducerActive,
 });
 
 export default allred;

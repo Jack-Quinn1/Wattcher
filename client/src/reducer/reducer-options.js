@@ -1,4 +1,4 @@
-export default function () {
+export function reducerOption() {
   return [
     {
       id: 1,

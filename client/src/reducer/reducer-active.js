@@ -1,4 +1,4 @@
-export default function (state = {}, action) {
+export function reducerActive(state = {}, action) {
   switch (action.type) {
     case "Option clicked":
       return action.payload;
