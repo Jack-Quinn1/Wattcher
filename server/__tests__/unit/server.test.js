@@ -17,7 +17,7 @@ describe("GET /hello", () => {
 describe("POST /api/register", () => {
   beforeAll(async () => {
     if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.TEST_DATABASE_URL1, {
+      await mongoose.connect(process.env.TEST_DATABASE_URL, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
@@ -68,7 +68,7 @@ describe("POST /api/login", () => {
   let user;
 
   beforeAll(async () => {
-    await mongoose.connect(process.env.TEST_DATABASE_URL2, {
+    await mongoose.connect(process.env.TEST_DATABASE_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -118,7 +118,7 @@ describe("GET /api/update", () => {
   let user;
 
   beforeAll(async () => {
-    await mongoose.connect(process.env.TEST_DATABASE_URL3, {
+    await mongoose.connect(process.env.TEST_DATABASE_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -173,7 +173,7 @@ describe("POST /api/update", () => {
   let user;
 
   beforeAll(async () => {
-    await mongoose.connect(process.env.TEST_DATABASE_URL4, {
+    await mongoose.connect(process.env.TEST_DATABASE_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -236,7 +236,7 @@ describe("GET /api/data", () => {
   let user;
 
   beforeAll(async () => {
-    await mongoose.connect(process.env.TEST_DATABASE_URL5, {
+    await mongoose.connect(process.env.TEST_DATABASE_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -285,7 +285,7 @@ describe("GET /api/rate", () => {
   let user;
 
   beforeAll(async () => {
-    await mongoose.connect(process.env.TEST_DATABASE_URL6, {
+    await mongoose.connect(process.env.TEST_DATABASE_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

@@ -9,7 +9,7 @@ require("dotenv").config();
 describe("API Integration Tests", () => {
   beforeAll(async () => {
     if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(process.env.TEST_DATABASE_URL, {
+      await mongoose.connect(process.env.TEST_DATABASE_URL1, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
