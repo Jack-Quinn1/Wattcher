@@ -3,3 +3,8 @@ node_modules
 
 #prod
 build
+
+.env
+
+.env.test
+

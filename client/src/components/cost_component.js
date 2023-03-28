@@ -2,7 +2,7 @@ import React from "react";
 import ReactFC from "react-fusioncharts";
 import ReactDOM from "react-dom";
 import moment from "moment";
-import "./App.css";
+import "./App.scss";
 import jwt_decode from "jwt-decode";
 import {
   buildDataThisMonth,

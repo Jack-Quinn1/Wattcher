@@ -70,6 +70,7 @@ class AreaComponent extends React.Component {
     document.getElementById("u1").style.textTransform = "uppercase";
     //document.getElementById("u2").style.textTransform = "uppercase";
     const locNames = [];
+    const currentDate = new Date(Date.now()).toISOString();
     for (var i = 0; i < loc.length; i++) {
       locNames.push(loc[i].name);
     }
@@ -84,10 +85,154 @@ class AreaComponent extends React.Component {
           label: location,
         });
       });
+
+      const areas = [];
+
+      for (var i = 0; i < loc.length; i++) {
+        areas[i] = [];
+        var timestampMap = new Map();
+        let columnIndex = 0;
+        for (var j = 0; j < loc[i].sensors.length; j++) {
+          for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+            const timestamp = loc[i].sensors[j].data[k].timestamp;
+            if (
+              currentDate.slice(0, 10) ===
+                loc[i].sensors[j].data[k].timestamp.slice(0, 10) &&
+              currentDate.slice(11, 13) >
+                loc[i].sensors[j].data[k].timestamp.slice(11, 13)
+            ) {
+              const rowid = i.toString();
+              const value = loc[i].sensors[j].data[k].value.toFixed(2);
+              if (timestampMap.has(timestamp)) {
+                const index = timestampMap.get(timestamp);
+                areas[i][index].value = (
+                  parseFloat(areas[i][index].value) + parseFloat(value)
+                ).toFixed(2);
+              } else {
+                const data = {
+                  rowid,
+                  columnid: columnIndex.toString(),
+                  value,
+                  timestamp,
+                };
+                areas[i].push(data);
+                columnIndex++;
+                timestampMap.set(timestamp, areas[i].length - 1);
+              }
+            }
+          }
+        }
+      }
+
+      const combinedAreas = areas.flat();
+      const combinedAreasWithoutTimestamp = combinedAreas.map((obj) => {
+        const { rowid, columnid, value } = obj;
+        return { rowid, columnid, value };
+      });
+
+      dataSource.dataset[0].data = combinedAreasWithoutTimestamp;
+      const x = 5;
     } else if (window.selectedperiod === "month") {
       dataSource = usage_thismonth;
+
+      const areas = [];
+
+      for (var i = 0; i < loc.length; i++) {
+        areas[i] = [];
+        var timestampMap = new Map();
+        let columnIndex = 0;
+        for (var j = 0; j < loc[i].sensors.length; j++) {
+          for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+            const timestamp = loc[i].sensors[j].data[k].timestamp;
+            const dayTimestamp = timestamp.slice(0, 10);
+            if (
+              currentDate.slice(0, 7) === dayTimestamp.slice(0, 7) &&
+              currentDate.slice(8, 10) >=
+                loc[i].sensors[j].data[k].timestamp.slice(8, 10)
+            ) {
+              const rowid = i.toString();
+              const value = loc[i].sensors[j].data[k].value.toFixed(2);
+              if (timestampMap.has(dayTimestamp)) {
+                const index = timestampMap.get(dayTimestamp);
+                areas[i][index].value = (
+                  parseFloat(areas[i][index].value) + parseFloat(value)
+                ).toFixed(2);
+              } else {
+                const data = {
+                  rowid,
+                  columnid: columnIndex.toString(),
+                  value,
+                  timestamp: dayTimestamp,
+                };
+                areas[i].push(data);
+                columnIndex++;
+                timestampMap.set(dayTimestamp, areas[i].length - 1);
+              }
+            }
+          }
+        }
+      }
+
+      const combinedAreas = areas.flat();
+      const combinedAreasWithoutTimestamp = combinedAreas.map((obj) => {
+        const { rowid, columnid, value } = obj;
+        return { rowid, columnid, value };
+      });
+
+      dataSource.dataset[0].data = combinedAreasWithoutTimestamp;
+
+      const x = 5;
     } else {
       dataSource = usage_thisyear;
+
+      const areas = [];
+
+      for (var i = 0; i < loc.length; i++) {
+        areas[i] = [];
+        var timestampMap = new Map();
+        let columnIndex = 0;
+        for (var j = 0; j < loc[i].sensors.length; j++) {
+          for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+            const timestamp = loc[i].sensors[j].data[k].timestamp;
+            const monthTimestamp = timestamp.slice(0, 7);
+            if (
+              currentDate.slice(0, 4) ===
+                loc[i].sensors[j].data[k].timestamp.slice(0, 4) &&
+              currentDate.slice(6, 7) >
+                loc[i].sensors[j].data[k].timestamp.slice(6, 7)
+            ) {
+              const rowid = i.toString();
+              const value = loc[i].sensors[j].data[k].value.toFixed(2);
+              if (timestampMap.has(monthTimestamp)) {
+                const index = timestampMap.get(monthTimestamp);
+                areas[i][index].value = (
+                  parseFloat(areas[i][index].value) + parseFloat(value)
+                ).toFixed(2);
+              } else {
+                const data = {
+                  rowid,
+                  columnid: columnIndex.toString(),
+                  value,
+                  timestamp: monthTimestamp,
+                };
+                areas[i].push(data);
+                columnIndex++;
+                timestampMap.set(monthTimestamp, areas[i].length - 1);
+              }
+            }
+          }
+        }
+      }
+
+      const combinedAreas = areas.flat();
+      const combinedAreasWithoutTimestamp = combinedAreas.map((obj) => {
+        const { rowid, columnid, value } = obj;
+        return { rowid, columnid, value };
+      });
+
+      dataSource.dataset[0].data = combinedAreasWithoutTimestamp;
+
+      const x = 5;
     }
 
     var chartconfig = { ...this.props.usagechart };

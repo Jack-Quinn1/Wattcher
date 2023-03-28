@@ -1,17 +1,23 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const User = require("./models/user.model");
+const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+require("dotenv").config();
 
 const app = express();
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cors());
 
+const databaseUrl =
+  process.env.NODE_ENV === "test"
+    ? process.env.TEST_DATABASE_URL
+    : process.env.DATABASE_URL;
+
 mongoose
-  .connect("mongodb://localhost:27017/wattcher", {
+  .connect(databaseUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -33,7 +39,12 @@ app.post("/api/register", async (req, res) => {
     });
     res.json({ status: "ok" });
   } catch (err) {
-    res.json({ status: "error", error: "Duplicate email" });
+    if (err.code === 11000) {
+      res.json({ status: "error", error: "Duplicate email" });
+    } else {
+      res.json({ status: "error", error: "Something went wrong" });
+    }
+    console.log(err);
   }
 });
 
@@ -106,9 +117,6 @@ app.post("/api/update", async (req, res) => {
       { email: email },
       {
         $set: {
-          name: req.body.name,
-          email: req.body.email,
-          password: req.body.password,
           dayRate: req.body.dayRate,
           nightRate: req.body.nightRate,
           sensorsGroup: req.body.locations,
@@ -147,6 +155,25 @@ app.get("/api/data", async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
-  console.log("Server started on 3001");
+app.get("/api/rate", async (req, res) => {
+  const token = req.headers["x-access-token"];
+  try {
+    const decoded = jwt.verify(token, "secret123");
+    const email = decoded.email;
+    const user = await User.findOne({ email: email });
+
+    return res.json({
+      status: "ok",
+      dayRate: user.dayRate,
+      nightRate: user.nightRate,
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({
+      status: "error",
+      error: "invalid token",
+    });
+  }
 });
+
+module.exports = app;

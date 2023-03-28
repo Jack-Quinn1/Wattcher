@@ -99,9 +99,12 @@ class ChartDetail extends Component {
 
     this.state = {
       locations: [],
+      dayRate: null,
+      nightRate: null,
     };
 
     this.populateProfile = this.populateProfile.bind(this);
+    this.populateProfileRate = this.populateProfileRate.bind(this);
   }
   componentDidMount() {
     document.getElementById("today").click();
@@ -112,6 +115,7 @@ class ChartDetail extends Component {
     if (token) {
       const user = jwt_decode(token);
       this.populateProfile(user);
+      this.populateProfileRate(user);
     }
   }
 
@@ -133,8 +137,29 @@ class ChartDetail extends Component {
     console.log(data);
   }
 
+  async populateProfileRate(user, event) {
+    //event.preventDefault();
+    const req = await fetch("http://localhost:3001/api/rate", {
+      headers: {
+        "x-access-token": localStorage.getItem("token"),
+      },
+    });
+    const data = await req.json();
+    if (data.status === "ok") {
+      this.setState({
+        dayRate: data.dayRate,
+        nightRate: data.nightRate,
+      });
+    } else {
+      alert(data.error);
+    }
+    console.log(data);
+  }
+
   componentDidUpdate() {
     const loc = this.state.locations;
+    const dRate = this.state.dayRate;
+    const nRate = this.state.nightRate;
 
     const yesData = [];
     const yesData1 = [];
@@ -399,17 +424,17 @@ class ChartDetail extends Component {
         .getElementById("bd-docs-nav")
         .setAttribute("class", "bd-links collapse");
 
-      ReactDOM.unmountComponentAtNode(document.getElementById("chart2"));
+      //ReactDOM.unmountComponentAtNode(document.getElementById("chart2"));
       document.getElementById("parent2").style.display = "block";
       document.getElementById("parent2").style.width = "auto";
       document.getElementById("parent2").style.height = "auto";
 
-      ReactDOM.unmountComponentAtNode(document.getElementById("chart3"));
+      //ReactDOM.unmountComponentAtNode(document.getElementById("chart3"));
       document.getElementById("parent3").style.display = "block";
       document.getElementById("parent3").style.width = "auto";
       document.getElementById("parent3").style.height = "auto";
 
-      ReactDOM.unmountComponentAtNode(document.getElementById("chart4"));
+      //ReactDOM.unmountComponentAtNode(document.getElementById("chart4"));
       document.getElementById("parent4").style.display = "block";
       document.getElementById("parent4").style.width = "auto";
       document.getElementById("parent4").style.height = "auto";
@@ -417,6 +442,8 @@ class ChartDetail extends Component {
       document.getElementById("parent5").style.display = "block";
       document.getElementById("parent5").style.width = "auto";
       document.getElementById("parent5").style.height = "auto";
+
+      const pie = chartConfigs1;
 
       ReactDOM.render(
         <ReactFC {...chartConfigs1} />,
@@ -443,8 +470,137 @@ class ChartDetail extends Component {
           moment().format("MMMM, Do YYYY");
 
         var todaynewdata1 = first_chart_today;
+        const soFarDayToday = [];
+        const soFarNightToday = [];
+        const currentDate1 = new Date().toISOString().slice(0, 10);
+
+        for (var i = 0; i < loc.length; i++) {
+          for (var j = 0; j < loc[i].sensors.length; j++) {
+            for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+              if (
+                currentDate.slice(0, 10) ===
+                  loc[i].sensors[j].data[k].timestamp.slice(0, 10) &&
+                currentDate.slice(11, 13) >
+                  loc[i].sensors[j].data[k].timestamp.slice(11, 13) &&
+                new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() >
+                  5 &&
+                new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() < 23
+              )
+                soFarDayToday.push(loc[i].sensors[j].data[k]);
+              if (
+                currentDate.slice(11, 13) >
+                  loc[i].sensors[j].data[k].timestamp.slice(11, 13) &&
+                new Date(loc[i].sensors[j].data[k].timestamp)
+                  .toISOString()
+                  .slice(0, 10) === currentDate1
+              )
+                if (
+                  new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() <=
+                    5 ||
+                  new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() >=
+                    23
+                )
+                  soFarNightToday.push(loc[i].sensors[j].data[k]);
+            }
+          }
+        }
+
+        let soFarDaySum = 0;
+        let soFarNightSum = 0;
+        let soFarTodaySum = 0;
+        for (let i = 0; i < soFarDayToday.length; i++) {
+          soFarDaySum += soFarDayToday[i].value;
+        }
+        soFarDaySum = soFarDaySum.toFixed(2);
+        for (let i = 0; i < soFarNightToday.length; i++) {
+          soFarNightSum += soFarNightToday[i].value;
+        }
+        soFarNightSum = soFarNightSum.toFixed(2);
+        soFarTodaySum = (
+          parseFloat(soFarDaySum) + parseFloat(soFarNightSum)
+        ).toFixed(2);
+        soFarTodaySum.toString();
+
+        todaynewdata1.data[0].value = soFarDaySum;
+        todaynewdata1.data[1].value = soFarNightSum;
+        todaynewdata1.annotations.groups[0].items[1].text =
+          soFarTodaySum + "kW/Hr";
+
         var todaynewdata2 = second_chart_today;
+        const dRate1 = dRate ? dRate.toString() : "";
+        const nRate1 = nRate ? nRate.toString() : "";
+        todaynewdata2.annotations.groups[0].items[0].text =
+          "Day Rate: €" + dRate1 + " p/KWh";
+        todaynewdata2.annotations.groups[0].items[1].text =
+          "Night Rate: €" + nRate1 + " p/KWh";
+
+        const totalCostNight = (soFarNightSum * nRate).toFixed(2).toString();
+        const totalCostDay = (soFarDaySum * dRate).toFixed(2).toString();
+        todaynewdata2.data[0].value = totalCostDay;
+        todaynewdata2.data[1].value = totalCostNight;
+
+        const totalCost = (
+          parseFloat(totalCostDay) + parseFloat(totalCostNight)
+        ).toFixed(2);
+        totalCost.toString();
+        todaynewdata2.annotations.groups[0].items[2].text =
+          "Total Cost So Far: €" + totalCost;
+
         var todaynewdata3 = third_chart_today;
+        const locNameArray = [];
+        for (var i = 0; i < loc.length; i++) {
+          locNameArray.push(loc[i].name);
+        }
+        const areas = [];
+
+        for (var i = 0; i < loc.length; i++) {
+          for (var j = 0; j < loc[i].sensors.length; j++) {
+            var sum = 0;
+            for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+              if (
+                currentDate.slice(0, 10) ===
+                  loc[i].sensors[j].data[k].timestamp.slice(0, 10) &&
+                currentDate.slice(11, 13) >
+                  loc[i].sensors[j].data[k].timestamp.slice(11, 13)
+              ) {
+                sum += loc[i].sensors[j].data[k].value;
+              }
+            }
+            if (sum > 0) {
+              areas.push({
+                label: loc[i].name,
+                value: Math.round(sum * 100) / 100,
+              });
+            }
+          }
+        }
+
+        const result = areas.reduce((acc, obj) => {
+          const existingObj = acc.find((item) => item.label === obj.label);
+          if (existingObj) {
+            existingObj.value += obj.value;
+          } else {
+            acc.push(obj);
+          }
+          return acc;
+        }, []);
+
+        let totalValue = result.reduce((total, area) => total + area.value, 0);
+
+        result.forEach((area) => {
+          area.value = area.value.toFixed(2);
+          area.toolText = `$Label: ${((area.value / totalValue) * 100).toFixed(
+            2
+          )}%`;
+        });
+
+        const stringData = result.map((item) => ({
+          ...item,
+          value: item.value.toString(),
+        }));
+
+        todaynewdata3.data = result;
+
         var todaynewdata4 = fourth_chart_today;
 
         FusionCharts.items["mychart1"].setJSONData(todaynewdata1);
@@ -457,8 +613,138 @@ class ChartDetail extends Component {
           moment().format("MMMM YYYY");
 
         var monthnewdata1 = first_chart_month;
+        const soFarDayMonth = [];
+        const soFarNightMonth = [];
+        const currentDate1 = new Date().toISOString().slice(0, 7);
+
+        for (var i = 0; i < loc.length; i++) {
+          for (var j = 0; j < loc[i].sensors.length; j++) {
+            for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+              if (
+                currentDate.slice(0, 7) ===
+                  loc[i].sensors[j].data[k].timestamp.slice(0, 7) &&
+                currentDate.slice(9, 10) >
+                  loc[i].sensors[j].data[k].timestamp.slice(9, 10) &&
+                new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() >
+                  5 &&
+                new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() < 23
+              )
+                soFarDayMonth.push(loc[i].sensors[j].data[k]);
+              if (
+                currentDate.slice(9, 10) >
+                  loc[i].sensors[j].data[k].timestamp.slice(9, 10) &&
+                new Date(loc[i].sensors[j].data[k].timestamp)
+                  .toISOString()
+                  .slice(0, 7) === currentDate1
+              )
+                if (
+                  new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() <=
+                    5 ||
+                  new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() >=
+                    23
+                )
+                  soFarNightMonth.push(loc[i].sensors[j].data[k]);
+            }
+          }
+        }
+
+        let soFarDaySum = 0;
+        let soFarNightSum = 0;
+        let soFarMonthSum = 0;
+
+        for (let i = 0; i < soFarDayMonth.length; i++) {
+          soFarDaySum += soFarDayMonth[i].value;
+        }
+        soFarDaySum = soFarDaySum.toFixed(2);
+        for (let i = 0; i < soFarNightMonth.length; i++) {
+          soFarNightSum += soFarNightMonth[i].value;
+        }
+        soFarNightSum = soFarNightSum.toFixed(2);
+        soFarMonthSum = (
+          parseFloat(soFarDaySum) + parseFloat(soFarNightSum)
+        ).toFixed(2);
+        soFarMonthSum.toString();
+
+        monthnewdata1.data[0].value = soFarDaySum;
+        monthnewdata1.data[1].value = soFarNightSum;
+        monthnewdata1.annotations.groups[0].items[1].text =
+          soFarMonthSum + "kW/Hr";
+
         var monthnewdata2 = second_chart_month;
+        const dRate1 = dRate ? dRate.toString() : "";
+        const nRate1 = nRate ? nRate.toString() : "";
+        monthnewdata2.annotations.groups[0].items[0].text =
+          "Day Rate: €" + dRate1 + " p/KWh";
+        monthnewdata2.annotations.groups[0].items[1].text =
+          "Night Rate: €" + nRate1 + " p/KWh";
+
+        const totalCostNight = (soFarNightSum * nRate).toFixed(2).toString();
+        const totalCostDay = (soFarDaySum * dRate).toFixed(2).toString();
+        monthnewdata2.data[0].value = totalCostDay;
+        monthnewdata2.data[1].value = totalCostNight;
+
+        const totalCost = (
+          parseFloat(totalCostDay) + parseFloat(totalCostNight)
+        ).toFixed(2);
+        totalCost.toString();
+        monthnewdata2.annotations.groups[0].items[2].text =
+          "Total Cost So Far: €" + totalCost;
+
         var monthnewdata3 = third_chart_month;
+        const locNameArray = [];
+        for (var i = 0; i < loc.length; i++) {
+          locNameArray.push(loc[i].name);
+        }
+        const areas = [];
+
+        for (var i = 0; i < loc.length; i++) {
+          for (var j = 0; j < loc[i].sensors.length; j++) {
+            var sum = 0;
+            for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+              if (
+                currentDate.slice(0, 7) ===
+                  loc[i].sensors[j].data[k].timestamp.slice(0, 7) &&
+                currentDate.slice(9, 10) >
+                  loc[i].sensors[j].data[k].timestamp.slice(9, 10)
+              ) {
+                sum += loc[i].sensors[j].data[k].value;
+              }
+            }
+            if (sum > 0) {
+              areas.push({
+                label: loc[i].name,
+                value: Math.round(sum * 100) / 100,
+              });
+            }
+          }
+        }
+
+        const result = areas.reduce((acc, obj) => {
+          const existingObj = acc.find((item) => item.label === obj.label);
+          if (existingObj) {
+            existingObj.value += obj.value;
+          } else {
+            acc.push(obj);
+          }
+          return acc;
+        }, []);
+
+        let totalValue = result.reduce((total, area) => total + area.value, 0);
+
+        result.forEach((area) => {
+          area.value = area.value.toFixed(2);
+          area.toolText = `$Label: ${((area.value / totalValue) * 100).toFixed(
+            2
+          )}%`;
+        });
+
+        const stringData = result.map((item) => ({
+          ...item,
+          value: item.value.toString(),
+        }));
+
+        monthnewdata3.data = result;
+
         var monthnewdata4 = fourth_chart_month;
 
         FusionCharts.items["mychart1"].setJSONData(monthnewdata1);
@@ -474,8 +760,137 @@ class ChartDetail extends Component {
         document.getElementById("date").innerHTML = moment().format("YYYY");
 
         var yearnewdata1 = first_chart_year;
+        const soFarDayYear = [];
+        const soFarNightYear = [];
+        const currentDate1 = new Date().toISOString().slice(0, 4);
+
+        for (var i = 0; i < loc.length; i++) {
+          for (var j = 0; j < loc[i].sensors.length; j++) {
+            for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+              if (
+                currentDate.slice(0, 4) ===
+                  loc[i].sensors[j].data[k].timestamp.slice(0, 4) &&
+                currentDate.slice(6, 7) >
+                  loc[i].sensors[j].data[k].timestamp.slice(6, 7) &&
+                new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() >
+                  5 &&
+                new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() < 23
+              )
+                soFarDayYear.push(loc[i].sensors[j].data[k]);
+              if (
+                currentDate.slice(6, 7) >
+                  loc[i].sensors[j].data[k].timestamp.slice(6, 7) &&
+                new Date(loc[i].sensors[j].data[k].timestamp)
+                  .toISOString()
+                  .slice(0, 4) === currentDate1
+              )
+                if (
+                  new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() <=
+                    5 ||
+                  new Date(loc[i].sensors[j].data[k].timestamp).getUTCHours() >=
+                    23
+                )
+                  soFarNightYear.push(loc[i].sensors[j].data[k]);
+            }
+          }
+        }
+
+        let soFarDaySum = 0;
+        let soFarNightSum = 0;
+        let soFarYearSum = 0;
+        for (let i = 0; i < soFarDayYear.length; i++) {
+          soFarDaySum += soFarDayYear[i].value;
+        }
+        soFarDaySum = soFarDaySum.toFixed(2);
+        for (let i = 0; i < soFarNightYear.length; i++) {
+          soFarNightSum += soFarNightYear[i].value;
+        }
+        soFarNightSum = soFarNightSum.toFixed(2);
+        soFarYearSum = (
+          parseFloat(soFarDaySum) + parseFloat(soFarNightSum)
+        ).toFixed(2);
+        soFarYearSum.toString();
+
+        yearnewdata1.data[0].value = soFarDaySum;
+        yearnewdata1.data[1].value = soFarNightSum;
+        yearnewdata1.annotations.groups[0].items[1].text =
+          soFarYearSum + "kW/Hr";
+
         var yearnewdata2 = second_chart_year;
+        const dRate1 = dRate ? dRate.toString() : "";
+        const nRate1 = nRate ? nRate.toString() : "";
+        yearnewdata2.annotations.groups[0].items[0].text =
+          "Day Rate: €" + dRate1 + " p/KWh";
+        yearnewdata2.annotations.groups[0].items[1].text =
+          "Night Rate: €" + nRate1 + " p/KWh";
+
+        const totalCostNight = (soFarNightSum * nRate).toFixed(2).toString();
+        const totalCostDay = (soFarDaySum * dRate).toFixed(2).toString();
+        yearnewdata2.data[0].value = totalCostDay;
+        yearnewdata2.data[1].value = totalCostNight;
+
+        const totalCost = (
+          parseFloat(totalCostDay) + parseFloat(totalCostNight)
+        ).toFixed(2);
+        totalCost.toString();
+        yearnewdata2.annotations.groups[0].items[2].text =
+          "Total Cost So Far: €" + totalCost;
+
         var yearnewdata3 = third_chart_year;
+        const locNameArray = [];
+        for (var i = 0; i < loc.length; i++) {
+          locNameArray.push(loc[i].name);
+        }
+        const areas = [];
+
+        for (var i = 0; i < loc.length; i++) {
+          for (var j = 0; j < loc[i].sensors.length; j++) {
+            var sum = 0;
+            for (var k = 0; k < loc[i].sensors[j].data.length; k++) {
+              if (
+                currentDate.slice(0, 4) ===
+                  loc[i].sensors[j].data[k].timestamp.slice(0, 4) &&
+                currentDate.slice(6, 7) >
+                  loc[i].sensors[j].data[k].timestamp.slice(6, 7)
+              ) {
+                sum += loc[i].sensors[j].data[k].value;
+              }
+            }
+            if (sum > 0) {
+              areas.push({
+                label: loc[i].name,
+                value: Math.round(sum * 100) / 100,
+              });
+            }
+          }
+        }
+
+        const result = areas.reduce((acc, obj) => {
+          const existingObj = acc.find((item) => item.label === obj.label);
+          if (existingObj) {
+            existingObj.value += obj.value;
+          } else {
+            acc.push(obj);
+          }
+          return acc;
+        }, []);
+
+        let totalValue = result.reduce((total, area) => total + area.value, 0);
+
+        result.forEach((area) => {
+          area.value = area.value.toFixed(2);
+          area.toolText = `$Label: ${((area.value / totalValue) * 100).toFixed(
+            2
+          )}%`;
+        });
+
+        const stringData = result.map((item) => ({
+          ...item,
+          value: item.value.toString(),
+        }));
+
+        yearnewdata3.data = result;
+
         var yearnewdata4 = fourth_chart_year;
 
         FusionCharts.items["mychart1"].setJSONData(yearnewdata1);
