@@ -5,6 +5,7 @@ const User = require("../models/user.model");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
+const path = require("path");
 
 const app = express();
 
@@ -174,6 +175,22 @@ app.get("/api/rate", async (req, res) => {
       error: "invalid token",
     });
   }
+});
+
+const _dirname = path.dirname("");
+const buildPath = path.join(_dirname, "../../client/build");
+
+app.use(express.static(buildPath));
+
+app.get("/*", function (req, res) {
+  res.sendFile(
+    path.join(__dirname, "../../client/build/index.html"),
+    function (err) {
+      if (err) {
+        res.status(500).send(err);
+      }
+    }
+  );
 });
 
 module.exports = app;
