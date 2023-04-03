@@ -1,6 +1,6 @@
 This project aims to create a cloud-based web application that helps users to showcase and scrutinize their energy consumption data, providing personalized energy-saving recommendations. Using cutting-edge technologies such as JavaScript, React.js, Express.js, Jest, GitHub, Jenkins, Jira, VS Code, MongoDB, and Amazon Web Services, this project aims to accomplish the following objectives:
 
-Objectives
+<h1>Objectives</h1>
 Data Representation: 
 Develop an interactive dashboard that adeptly exhibits energy usage patterns, enabling users to effortlessly comprehend and investigate their consumption tendencies across distinct time periods and locations.
 
