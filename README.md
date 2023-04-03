@@ -50,3 +50,20 @@ The development process is meticulously documented, encompassing design choices,
 <h1>Conclusion:</h1>
 
 The Energy Consumption Dashboard is a user-centric and effective cloud-based web application that helps users to showcase and scrutinize their energy consumption data, providing personalized energy-saving recommendations. With its cutting-edge technology stack, streamlined workflow, and meticulous documentation, this project is set to revolutionize the way we monitor and optimize our energy consumption.
+
+<h1>Installation and Usage</h1>
+To get started with the Energy Consumption Dashboard, follow these steps:
+
+Clone this repository to your local machine using the command git clone 
+
+Navigate to the project directory of server and client
+
+Run npm install for both client and server to install the required dependencies for the project.
+
+After installation is complete, run npm run dev for server and npm start for client to start the development server.
+
+Open your browser and navigate to http://localhost:3000 to view the application.
+
+Note that the npm start command will start the development server and automatically open your default browser to http://localhost:3000. If you need to run the application on a different port, you can specify the port number using the -p flag, like this: npm start -p 8080.
+
+Additionally, if you need to build the project for production, you can use the npm run build command. This will create a production-ready build in the build directory that you can deploy to a web server.
