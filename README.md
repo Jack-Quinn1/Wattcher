@@ -42,7 +42,9 @@ Jira
 VS Code
 MongoDB
 Amazon Web Services
-Documentation
+
+Documentation:
+
 The development process is meticulously documented, encompassing design choices, implementation specifics, and user manuals, ensuring the dependability and stability of the web application. Testing tools like Jest are employed to guarantee the reliability and stability of the application.
 
 Conclusion:
