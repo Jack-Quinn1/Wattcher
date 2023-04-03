@@ -19,7 +19,7 @@ Design a user-centric interface that caters to the distinct requirements of dive
 <h2>Continuous Integration and Deployment: </h2>
 Establish a streamlined workflow for software development, testing, and deployment using instruments such as GitHub, Jenkins, and Jira, ensuring efficient collaboration and punctual delivery of high-quality software.
 
-<h1>Documentation and Testing: </h2>
+<h2>Documentation and Testing: </h2>
 Meticulously document the development process, encompassing design choices, implementation specifics, and user manuals, while employing testing tools like Jest to guarantee the dependability and stability of the web application.
 
 <h2>Extensibility and Maintainability: </h2>
